@@ -11,10 +11,8 @@ class ArticalNews extends StatefulWidget {
 }
 
 class _ArticalNewsState extends State<ArticalNews> {
-  final Completer<WebViewController> _completer =
-      Completer<WebViewController>();
   late bool _isLoadingPage;
-  
+
   @override
   void initState() {
     super.initState();
@@ -23,18 +21,28 @@ class _ArticalNewsState extends State<ArticalNews> {
 
   @override
   Widget build(BuildContext context) {
+    final WebViewController webViewController = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      // ..setBackgroundColor(const Color(0x00000000))
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageFinished: (String url) {
+            setState(() => _isLoadingPage = false);
+          },
+        ),
+      )
+      ..loadRequest(Uri.parse(widget.newsUrl));
     return Scaffold(
-      appBar: AppBar(centerTitle: true, title: const Text('News',),),
+      appBar: AppBar(
+        centerTitle: true,
+        title: const Text(
+          'News',
+        ),
+      ),
       body: Stack(
         children: [
-          WebView(
-            initialUrl: widget.newsUrl,
-            javascriptMode: JavascriptMode.unrestricted,
-            onWebViewCreated: (WebViewController controller) {
-              _completer.complete(controller);
-            },
-            onPageFinished: (String finish) =>
-                setState(() => _isLoadingPage = false),
+          WebViewWidget(
+            controller: webViewController,
           ),
           if (_isLoadingPage)
             Container(
@@ -44,7 +52,7 @@ class _ArticalNewsState extends State<ArticalNews> {
               ),
             )
           else
-            SizedBox.shrink()
+            const SizedBox.shrink()
         ],
       ),
     );
